@@ -22,15 +22,12 @@ def embeddings(name):
 
 t0 = time.time()
 
-# Chargement des données
 loader = TextLoader("data/all_texts_clean.txt")
 data = loader.load()
 
 # Division du texte
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
 all_splits = text_splitter.split_documents(data)
-
-# Choix des embeddings adaptés au français
 
 #name = 'dangvantuan/sentence-camembert-large'
 #db_name = 'db_dangvantuan'
@@ -43,19 +40,17 @@ all_splits = text_splitter.split_documents(data)
 local_embeddings = OllamaEmbeddings(model="zylonai/multilingual-e5-large")
 
 db_name = "db_e5"
-# Création du vectorstore avec les nouveaux embeddings
-#vectorstore = Chroma.from_documents(
-#            documents=all_splits,
-#            embedding=local_embeddings,
-#            persist_directory=db_name
-#        )
 
-vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
+vectorstore = Chroma.from_documents(
+            documents=all_splits,
+            embedding=local_embeddings,
+            persist_directory=db_name
+        )
 
-# Configuration du retriever pour renvoyer plus de documents
+#vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
+
 retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
 
-# Initialisation du modèle de langage
 model = ChatOllama(
             model="mixtral:8x7b",
         )
@@ -71,18 +66,19 @@ template = """
           Réponse :
           """
 
+template2 ="""
+           Un paysan parle comme ça: "Eh bien, ma foi, faut qu'j'aille aux champs de bon matin. La terre, elle s'laboure pas toute seule, vous savez. Si le temps s'met au beau, on aura une belle récolte c't'année. Et pis, faut qu'j'aille m'occuper des bêtes avant qu'le soleil soit trop haut. Allez, au boulot, y'a pas d'temps à perdre !" Reponds à la question en parlant comme un paysan et en te basant uniquement sur le contexte suivant:
+           {contexte}
+           Question: {input]
+           Réponse:
+           """ 
+
+
 prompt = ChatPromptTemplate.from_template(template)
-
-# Création de la chaîne de question-réponse
 question_answer_chain = create_stuff_documents_chain(model, prompt)
-
-# Création de la chaîne RAG complète
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-
-# Exécution de la chaîne RAG
 result = rag_chain.invoke({"input": "Pourquoi faut-il arroser les salades le soir?"})
 
-# Affichage des résultats
 print("--------------------")
 print(result["input"])
 print("--------------------")
