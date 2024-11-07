@@ -1,4 +1,3 @@
-from flask import Flask, request, jsonify
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
@@ -23,7 +22,7 @@ def embeddings(name):
 
 t0 = time.time()
 
-loader = TextLoader("../data/all_texts_clean.txt")
+loader = TextLoader("data/all_texts_clean.txt")
 data = loader.load()
 
 # Division du texte
@@ -40,7 +39,7 @@ all_splits = text_splitter.split_documents(data)
 
 local_embeddings = OllamaEmbeddings(model="zylonai/multilingual-e5-large")
 
-db_name = "/mnt/diskSustainability/GOM/RAG/db_e5"
+db_name = ""
 
 #{vectorstore = Chroma.from_documents(
   #          documents=all_splits,
@@ -78,59 +77,18 @@ template2 ="""
 prompt = ChatPromptTemplate.from_template(template)
 question_answer_chain = create_stuff_documents_chain(model, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-# result = rag_chain.invoke({"input": "Pourquoi faut-il arroser les salades le soir?"})
+result = rag_chain.invoke({"input": "Pourquoi faut-il arroser les salades le soir?"})
 
-# print("--------------------")
-# print(result["input"])
-# print("--------------------")
-# print(result["answer"])
-# print("--------------------")
-# print("Basé sur les sources suivantes :")
-# print("***")
+print("--------------------")
+print(result["input"])
+print("--------------------")
+print(result["answer"])
+print("--------------------")
+print("Basé sur les sources suivantes :")
+print("***")
 
-# for doc in result["context"]:
-#     print(doc.page_content)
-#     print("***")
+for doc in result["context"]:
+    print(doc.page_content)
+    print("***")
 
-# print(f"Temps d'exécution : {time.time() - t0} secondes")
-
-app = Flask(__name__)
-
-# @app.route("/response", methods=['GET'])
-# def getResponse():
-#     response = {"response": "test"}
-#     return jsonify(response)
-
-
-# @app.route("/question", methods=['POST'])
-# def postQuestion():
-
-#     data = request.get_json()
-#     question = data.get("question")
-#     if question:
-#         response = {"response": f"ok"}
-#         print({question})
-#         return jsonify(response), 200
-#     else:
-#         return jsonify({"bad requete"}), 400
-
-
-@app.route("/get-reponse", methods=['GET'])
-@app.route("/get-response", methods=['POST'])
-def getResponse():
-    data = request.get_json()
-    question = data.get("question")
-    if question:
-        result = rag_chain.invoke({"input": question})
-        response = {
-            "input": question,
-            "contexte": format_docs(result["context"]),
-            "answer": result["answer"]
-        }
-        print(question)
-        return jsonify(response), 200
-    else:
-        return jsonify({"error": "bad request"}), 400
-
-if __name__ == "__main__":
-    app.run(debug=True)
+print(f"Temps d'exécution : {time.time() - t0} secondes")

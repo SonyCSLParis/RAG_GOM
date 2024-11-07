@@ -1,11 +1,12 @@
 import { useState } from "react";
+import ChatBot from "react-chatbotify";
 
 function App() {
   const [dataResponse, setDataResponse] = useState({});
   const [question, setQuestion] = useState("");
 
-  async function getResponse() {
-    await fetch('/get-response', {
+  async function getResponse(question) {
+    const response = await fetch('/get-response', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -13,13 +14,27 @@ function App() {
       body: JSON.stringify({
         question: question
       }),
-    })
-    .then((response) => response.json())
-    .then((dataResponse) => {
-      setDataResponse(dataResponse);
-      console.log(dataResponse);
     });
+    
+    const dataResponse = await response.json();
+    setDataResponse(dataResponse);
+    console.log(dataResponse);
+
+    return dataResponse.answer;
   }
+
+  const flow = {
+    start: {
+      message: "Votre question",
+      path: "model_loop",
+    },
+    model_loop: {
+      message: async (params) => {
+        return await getResponse(params.userInput);
+      },
+      path: "model_loop"
+    },
+  };
 
   return (
     <div>
@@ -30,7 +45,7 @@ function App() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
-        <button onClick={getResponse}>Submit Question</button> 
+        <button onClick={() => getResponse(question)}>Submit Question</button> 
       </div>
       <div>
         {dataResponse.contexte && (
@@ -52,6 +67,7 @@ function App() {
           </div>
         )}
       </div>
+      <ChatBot flow={flow}/>
     </div>
   );
 }

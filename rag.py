@@ -39,15 +39,15 @@ all_splits = text_splitter.split_documents(data)
 
 local_embeddings = OllamaEmbeddings(model="zylonai/multilingual-e5-large")
 
-db_name = "db_e5"
+db_name = "/mnt/diskSustainability/GOM/RAG/db_e5"
 
-vectorstore = Chroma.from_documents(
-            documents=all_splits,
-            embedding=local_embeddings,
-            persist_directory=db_name
-        )
+#{vectorstore = Chroma.from_documents(
+  #          documents=all_splits,
+   #         embedding=local_embeddings,
+    #        persist_directory=db_name
+     #   )
 
-#vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
+vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
 
 retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
 
