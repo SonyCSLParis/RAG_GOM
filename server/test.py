@@ -8,13 +8,24 @@ from langchain_ollama import OllamaEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_community.document_loaders import DirectoryLoader
 import time
 import shutil
 
 def format_docs(docs):
    return "\n\n".join(doc.page_content for doc in docs)
 
+def test(docs):
+    if not docs:
+        return []
+    contexts = []
+    for doc in docs:
+        context = {
+            "page_content": doc.page_content,
+            "source": doc.metadata,
+        }
+        contexts.append(context)
+    return contexts
+    
 def embeddings(name):
    return HuggingFaceEmbeddings(
             model_name='name',
@@ -24,9 +35,7 @@ def embeddings(name):
 
 t0 = time.time()
 
-# loader = TextLoader("../data/all_texts_clean.txt")
-loader = DirectoryLoader('../corpus_txt_agg')
-
+loader = TextLoader("../data/all_texts_clean.txt")
 data = loader.load()
 
 # Division du texte
@@ -45,20 +54,15 @@ local_embeddings = OllamaEmbeddings(model="zylonai/multilingual-e5-large")
 
 db_name = "/mnt/diskSustainability/GOM/RAG/db_e5"
 
-def load_or_create(string):
-   if string == "create":
-      vectorstore = Chroma.from_documents(
-         documents=all_splits,
-         embedding=local_embeddings,
-         persist_directory=db_name
-      )
-   else:
-      vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
-   return vectorstore
+#{vectorstore = Chroma.from_documents(
+  #          documents=all_splits,
+   #         embedding=local_embeddings,
+    #        persist_directory=db_name
+     #   )
 
-vectorstore = load_or_create("create")
+vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
 
-retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 
 model = ChatOllama(
             model="mixtral:8x7b",
@@ -86,9 +90,8 @@ template2 ="""
 prompt = ChatPromptTemplate.from_template(template)
 question_answer_chain = create_stuff_documents_chain(model, prompt)
 rag_chain = create_retrieval_chain(retriever, question_answer_chain)
-result = rag_chain.invoke({"input": "Pourquoi faut-il arroser les salades le soir?"})
+# result = rag_chain.invoke({"input": "Pourquoi faut-il arroser les salades le soir?"})
 
-contextes = result["context"]
 # print("--------------------")
 # print(result["input"])
 # print("--------------------")
@@ -98,7 +101,7 @@ contextes = result["context"]
 # print("***")
 
 # for doc in result["context"]:
- #    print(doc.page_content)
+#     print(doc.page_content)
 #     print("***")
 
 # print(f"Temps d'exécution : {time.time() - t0} secondes")
@@ -124,22 +127,31 @@ app = Flask(__name__)
 #         return jsonify({"bad requete"}), 400
 
 
-# @app.route("/get-reponse", methods=['GET'])
-# @app.route("/get-response", methods=['POST'])
-# def getResponse():
-#     data = request.get_json()
-#     question = data.get("question")
-#     if question:
-#         result = rag_chain.invoke({"input": question})
-#         response = {
-#             "input": question,
-#             "contexte": format_docs(result["context"]),
-#             "answer": result["answer"]
-#         }
-#         print(question)
-#         return jsonify(response), 200
-#     else:
-#         return jsonify({"error": "bad request"}), 400
+@app.route("/get-reponse", methods=['GET'])
+@app.route("/get-response", methods=['POST'])
+def getResponse():
+    data = request.get_json()
+    question = data.get("question")
+    if question:
+        result = rag_chain.invoke({"input": question})
+        response = {
+            "input": question,
+            # "contexte": format_docs(result["context"]),
+            "contexte": test(result["context"]),
+            "answer": result["answer"],
+        }
+        print("\n\n")
+        print(question)
+        print("\n\n")
+        contexts = test(result["context"])
+        for context in contexts:
+            print("les contextes et les sources", context)
+            print("\n\n")
+        print("\n\n")
+        # print(contexts[0]["source"])
+        return jsonify(response), 200
+    else:
+        return jsonify({"error": "bad request"}), 400
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)

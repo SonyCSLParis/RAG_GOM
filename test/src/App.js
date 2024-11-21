@@ -20,7 +20,7 @@ function App() {
     setDataResponse(dataResponse);
     console.log(dataResponse);
 
-    return dataResponse.answer;
+    return dataResponse;
   }
 
   const flow = {
@@ -30,7 +30,8 @@ function App() {
     },
     model_loop: {
       message: async (params) => {
-        return await getResponse(params.userInput);
+        const response = await getResponse(params.userInput);
+        return response.answer + "\n\n" 
       },
       path: "model_loop"
     },
@@ -51,7 +52,14 @@ function App() {
         {dataResponse.contexte && (
           <div>
             <h3>Contexte :</h3>
-            <p>{dataResponse.contexte}</p>
+              {Array.isArray(dataResponse.contexte) &&
+                dataResponse.contexte.map((context, index) => (
+                  <div key={index}>
+                    <p>context :</p> {context.page_content}
+                    <p>Source :</p>
+                    {context.source.source}
+                  </div>
+                ))}
           </div>
         )}
         {dataResponse.input && (
