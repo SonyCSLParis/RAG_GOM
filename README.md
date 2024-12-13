@@ -1,70 +1,138 @@
-# Getting Started with Create React App
+# Setup and Launch Guide for Flask and React Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Prerequisites
 
-## Available Scripts
+Before starting, make sure you have the following tools installed:
+- [Python 3.x](https://www.python.org/downloads/)
+- [Node.js](https://nodejs.org/)
+- [npm](https://www.npmjs.com/)
+- [git](https://git-scm.com/)
 
-In the project directory, you can run:
+## 1. Install Python, Node.js, and npm
 
-### `npm start`
+Ensure that Python, Node.js, and npm are installed on your machine:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- To check if Python is installed, run:
+  ```bash
+  python --version
+  ```
+If not installed, you can download and install Python from the official website.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+To check if Node.js and npm are installed, run:
+```bash
+node --version
+npm --version
+```
+If not installed, you can download and install Node.js (which includes npm) from the official website.
 
-### `npm test`
+## 2. Set Up a Virtual Environment for Python (Optional but Recommended)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+If you want to isolate your Python dependencies, it's recommended to use a virtual environment.
 
-### `npm run build`
+Create a virtual environment:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+python -m venv venv
+```
+Activate the virtual environment:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+On macOS/Linux:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+source venv/bin/activate
+```
+On Windows (via cmd):
 
-### `npm run eject`
+```bash
+venv\Scripts\activate
+````
+If you see the (venv) prefix in your terminal, the virtual environment is activated.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 3. Install Python Dependencies
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+With the virtual environment activated (if used), install the required Python packages for your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+pip install flask lanchain lanchain-community lanchain-ollama unstructured chromadb
+```
+## 4. Set the Flask Environment Variables
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Now that the virtual environment is set up, navigate to the server directory and set the environment variables for Flask.
 
-## Learn More
+Go to the server directory:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd server
+```
+Set the Flask environment variables:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+On macOS/Linux:
 
-### Code Splitting
+```bash
+export FLASK_APP=server.py
+export FLASK_ENV=development
+```
+On Windows (via cmd):
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+set FLASK_APP=server.py
+set FLASK_ENV=development
+```
+To check if the environment variables are set correctly, you can use the echo command (on macOS/Linux) or echo %VAR_NAME% (on Windows).
 
-### Analyzing the Bundle Size
+### 5. Start the Flask Server
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Once the environment variables are set, start the Flask server:
 
-### Making a Progressive Web App
+```bash
+flask run
+```
+Your Flask application will now be running at http://127.0.0.1:5000.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 6. Install Front-End Dependencies (React)
 
-### Advanced Configuration
+Now, let's set up the React part of the project.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Navigate to the front/chatbot directory:
 
-### Deployment
+```bash
+cd ../front/chatbot
+```
+Install the necessary Node.js dependencies:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm install
+```
+If the installation fails, try running the command again:
 
-### `npm run build` fails to minify
+```bash
+npm install
+```
+## 7. Install TailwindCSS
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Since TailwindCSS is already configured in your repo, you just need to ensure it's installed.
+
+Install TailwindCSS with npm:
+
+```bash
+npm install tailwindcss
+```
+### 8. Start the React Application
+
+Once all dependencies are installed, launch the React app with:
+
+```bash
+npm start
+```
+The React application will now be running at http://localhost:3000.
+
+### 9. Troubleshooting
+
+If you encounter any issues, here are a few steps to try:
+
+Ensure all dependencies are installed by running npm install and pip install.
+Restart your terminal and check that the environment variables are correctly set.
+
+If you encounter issues with Flask, ensure the server.py file exists and is in the correct location.
+
+If you encounter issues with React, check the logs for specific errors and troubleshoot based on the error messages.
