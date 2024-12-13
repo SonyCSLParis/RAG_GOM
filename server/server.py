@@ -15,6 +15,20 @@ import shutil
 def format_docs(docs):
    return "\n\n".join(doc.page_content for doc in docs)
 
+
+def test(docs):
+    if not docs:
+        return []
+    contexts = []
+    for doc in docs:
+        context = {
+            "page_content": doc.page_content,
+            "source": doc.metadata,
+        }
+        contexts.append(context)
+    return contexts
+    
+    
 def embeddings(name):
    return HuggingFaceEmbeddings(
             model_name='name',
@@ -43,7 +57,9 @@ all_splits = text_splitter.split_documents(data)
 
 local_embeddings = OllamaEmbeddings(model="zylonai/multilingual-e5-large")
 
-db_name = "/mnt/diskSustainability/GOM/RAG/db_e5"
+# db_name = "/mnt/diskSustainability/GOM/RAG/db_e5-new"
+# db_name = "/mnt/diskSustainability/bradley/RAG_GOM/db_e5"
+db_name = "../database/db-e5"
 
 def load_or_create(string):
    if string == "create":
@@ -56,9 +72,9 @@ def load_or_create(string):
       vectorstore = Chroma(persist_directory=db_name, embedding_function=local_embeddings)
    return vectorstore
 
-vectorstore = load_or_create("create")
+vectorstore = load_or_create("import")
 
-retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 
 model = ChatOllama(
             model="mixtral:8x7b",
@@ -141,5 +157,31 @@ app = Flask(__name__)
 #     else:
 #         return jsonify({"error": "bad request"}), 400
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
+
+@app.route("/get-response", methods=['POST'])
+def getResponse():
+    data = request.get_json()
+    question = data.get("question")
+    if question:
+        result = rag_chain.invoke({"input": question})
+        response = {
+            "input": question,
+            # "contexte": format_docs(result["context"]),
+            "contexte": test(result["context"]),
+            "answer": result["answer"],
+        }
+        print("\n\n")
+        print(question)
+        print("\n\n")
+        contexts = test(result["context"])
+        for context in contexts:
+            print("les contextes et les sources", context)
+            print("\n\n")
+        print("\n\n")
+        # print(contexts[0]["source"])
+        return jsonify(response), 200
+    else:
+        return jsonify({"error": "bad request"}), 400
+     
+if __name__ == "__main__":
+    app.run(debug=True)
